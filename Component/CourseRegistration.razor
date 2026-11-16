@@ -1,0 +1,193 @@
+﻿@page "/course-registration"
+
+<div class="container mt-3">
+    <h2 class="mb-3">Air University - Course Registration Management System</h2>
+    <hr />
+
+    <!-- Part C: Course Registration Form (Data Binding) -->
+    <div class="card p-4 mb-4 shadow-sm">
+        <h4 class="mb-3">Course Registration Form</h4>
+
+        @if (!string.IsNullOrEmpty(notificationMessage))
+        {
+            <div class="alert @notificationClass py-2" role="alert">
+                @notificationMessage
+            </div>
+        }
+
+        <div class="row g-3">
+            
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Student Name</label>
+                <input type="text" class="form-control" placeholder="Enter Student Name" @bind="studentName" />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Registration Number</label>
+                <input type="text" class="form-control" placeholder="Enter Registration Number" @bind="registrationNumber" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Course Code</label>
+                <input type="text" class="form-control" placeholder="Enter Course Code" @bind="courseCode" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Course Title</label>
+                <input type="text" class="form-control" placeholder="Enter Course Title" @bind="courseTitle" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Credit Hours</label>
+                <select class="form-select" @bind="creditHours">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Semester</label>
+                <select class="form-select" @bind="semester">
+                    <option value="1st">1st</option>
+                    <option value="2nd">2nd</option>
+                    <option value="3rd">3rd</option>
+                    <option value="4th">4th</option>
+                    <option value="5th">5th</option>
+                    <option value="6th">6th</option>
+                    <option value="7th">7th</option>
+                    <option value="8th">8th</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary" @onclick="RegisterCourse">Register Course</button>
+        </div>
+    </div>
+
+    <div class="card p-4 shadow-sm">
+        <h4 class="mb-3">Registered Courses</h4>
+
+        @if (registeredCourses.Count == 0)
+        {
+            <p class="text-muted mb-0">No courses registered yet. Use the form above to add a course registration.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover align-middle">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Registration ID</th>
+                            <th>Student Name</th>
+                            <th>Registration No.</th>
+                            <th>Course Code</th>
+                            <th>Course Title</th>
+                            <th>Credit Hours</th>
+                            <th>Semester</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var course in registeredCourses)
+                        {
+                            <tr>
+                                <td>@course.RegistrationId</td>
+                                <td>@course.StudentName</td>
+                                <td>@course.RegistrationNumber</td>
+                                <td>@course.CourseCode</td>
+                                <td>@course.CourseTitle</td>
+                                <td>@course.CreditHours</td>
+                                <td>@course.Semester</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteCourse(course.RegistrationId)">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    public class Course
+    {
+        public int RegistrationId { get; set; }
+        public string StudentName { get; set; } = string.Empty;
+        public string RegistrationNumber { get; set; } = string.Empty;
+        public string CourseCode { get; set; } = string.Empty;
+        public string CourseTitle { get; set; } = string.Empty;
+        public int CreditHours { get; set; }
+        public string Semester { get; set; } = string.Empty;
+    }
+
+    List<Course> registeredCourses = new List<Course>();
+
+    string studentName = "";
+    string registrationNumber = "";
+    string courseCode = "";
+    string courseTitle = "";
+    int creditHours = 2;
+    string semester = "1st";
+
+    int nextRegistrationId = 1001;
+    string notificationMessage = "";
+    string notificationClass = "alert-success";
+
+    void RegisterCourse()
+    {
+        if (string.IsNullOrWhiteSpace(studentName) ||
+            string.IsNullOrWhiteSpace(registrationNumber) ||
+            string.IsNullOrWhiteSpace(courseCode) ||
+            string.IsNullOrWhiteSpace(courseTitle))
+        {
+            notificationClass = "alert-danger";
+            notificationMessage = "Please fill in all required fields before registering.";
+            return;
+        }
+
+        Course newCourse = new Course
+        {
+            RegistrationId = nextRegistrationId++,
+            StudentName = studentName.Trim(),
+            RegistrationNumber = registrationNumber.Trim(),
+            CourseCode = courseCode.Trim(),
+            CourseTitle = courseTitle.Trim(),
+            CreditHours = creditHours,
+            Semester = semester
+        };
+
+        registeredCourses.Add(newCourse);
+
+        notificationClass = "alert-success";
+        notificationMessage = $"Course '{newCourse.CourseCode} - {newCourse.CourseTitle}' registered successfully (ID: {newCourse.RegistrationId})!";
+
+        ClearFormFields();
+    }
+
+    void ClearFormFields()
+    {
+        studentName = "";
+        registrationNumber = "";
+        courseCode = "";
+        courseTitle = "";
+        creditHours = 2;
+        semester = "1st";
+    }
+
+    void DeleteCourse(int registrationId)
+    {
+        var courseToRemove = registeredCourses.FirstOrDefault(c => c.RegistrationId == registrationId);
+        if (courseToRemove != null)
+        {
+            registeredCourses.Remove(courseToRemove);
+            notificationClass = "alert-warning";
+            notificationMessage = $"Registration ID {registrationId} has been deleted.";
+        }
+    }
+}
